@@ -13,6 +13,7 @@ http://www.realvnc.com/docs/rfbproto.pdf
 
 from __future__ import annotations
 
+import asyncio
 import getpass
 import os
 import sys
@@ -528,8 +529,10 @@ class RFBClient(Protocol):  # type: ignore[misc]
             self._version_server = version_server
             if version < (3, 7):
                 self.expect(self._handleAuth, 4)
+                self.factory.handshake_completed.set()
             else:
                 self.expect(self._handleNumberSecurityTypes, 1)
+                self.factory.handshake_completed.set()
         elif not self._HEADER.startswith(norm):
             log.msg(f"invalid initial server response {head!r}")
             self.transport.loseConnection()

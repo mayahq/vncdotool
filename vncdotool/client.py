@@ -7,6 +7,7 @@ Twisted based VNC client protocol and factory.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 import socket
@@ -545,6 +546,7 @@ class VNCDoToolFactory(rfb.RFBFactory):
 
     def __init__(self) -> None:
         self.deferred = Deferred()
+        self.handshake_completed = asyncio.Event()
 
     def clientConnectionLost(self, connector: IConnector, reason: Failure) -> None:
         pass

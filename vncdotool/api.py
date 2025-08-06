@@ -76,6 +76,9 @@ class ThreadedVNCClientProxy:
 
         reactor.callFromThread(self.factory.deferred.addCallback, disconnector)
 
+    def wait_for_handshake(self) -> None:
+        self.factory.handshake_completed.wait()
+
     def __getattr__(self, attr: str) -> Any:
         method = getattr(self.factory.protocol, attr)
         if not callable(method):

@@ -7,10 +7,9 @@ import asyncio
 async def main():
     client = api.connect('65.0.170.114:1', repeater_id='1111')
     print("Client connected.")
-    print("Sleeping.")
-    await asyncio.sleep(20)
-
-    print("Slept.")
+    print("Waiting for handshake.")
+    client.wait_for_handshake()
+    print("Handshake complete.")
     client.captureScreen('screenshot.png')
     print("Captured.")
 
