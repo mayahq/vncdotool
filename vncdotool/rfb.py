@@ -431,6 +431,7 @@ def _zrle_next_nibble(it: Iterator[int], pixels_in_tile: int) -> Iterator[int]:
 class RFBClient(Protocol):  # type: ignore[misc]
     # https://www.rfc-editor.org/rfc/rfc6143#section-7.1.1
     SUPPORTED_SERVER_VERSIONS = {
+        (0, 0),  # UltraVNC repeater
         (3, 3),
         # (3, 5),
         (3, 7),
@@ -487,14 +488,34 @@ class RFBClient(Protocol):  # type: ignore[misc]
 
     def _handleInitial(self) -> None:
         head = self._packet[:12]
+        
         norm = head.translate(self._HEADER_TRANSLATE)
+        print("HEAD: ", head)
         if norm == self._HEADER:
             version_server = (int(head[4:7]), int(head[8:11]))
+            
+            if version_server == (0, 0):  # UltraVNC repeater
+                print("UltraVNC repeater detected")
+                if not self.factory.repeater_id:
+                    self.transport.loseConnection()
+                    return
+
+                repeater_id = f"ID:{self.factory.repeater_id}"
+                self.transport.write(repeater_id.ljust(250, "\0").encode("ASCII"))
+                # if "003.008\n" in self._packet:
+                #     self._packet = self._packet[12:]
+
+                print("PACKET", self._packet)
+                self._packet = self._packet[12:]
+                print("Sent repeater ID")
+                # self._handleInitial()
+                return
+
             if version_server not in self.SUPPORTED_SERVER_VERSIONS:
                 log.msg("Protocol version %d.%d not supported" % version_server)
 
             version = max(
-                v for v in self.SUPPORTED_SERVER_VERSIONS if v <= version_server
+                v for v in self.SUPPORTED_SERVER_VERSIONS if v <= version_server and v != (0, 0)
             )
             if version > self.MAX_CLIENT_VERSION:
                 version = self.MAX_CLIENT_VERSION
@@ -1379,9 +1400,15 @@ class RFBFactory(protocol.ClientFactory):  # type: ignore[misc]
     # should be overriden by application to use a derrived class
     protocol = RFBClient
 
-    def __init__(self, password: str | None = None, shared: bool = False) -> None:
+    def __init__(
+        self,
+        password: str | None = None,
+        shared: bool = False,
+        repeater_id: str | None = None,
+    ) -> None:
         self.password = password
         self.shared = shared
+        self.repeater_id = repeater_id
 
 
 def _vnc_des(password: str) -> bytes:

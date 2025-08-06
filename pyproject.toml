@@ -1,0 +1,11 @@
+[project]
+name = "vncdotool"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pillow>=11.3.0",
+    "pycryptodomex>=3.23.0",
+    "twisted>=25.5.0",
+]

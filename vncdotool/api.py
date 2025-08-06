@@ -133,7 +133,7 @@ def connect(server: str, password: str | None, factory_class: type[VNCDoToolFact
 @overload
 def connect(server: str, password: str | None, factory_class: type[VNCDoToolFactory], proxy: type[TProxy], timeout: float | None) -> TProxy: ...
 @overload
-def connect(server: str, password: str | None, factory_class: type[VNCDoToolFactory], proxy: type[TProxy], timeout: float | None, username: str | None) -> TProxy: ...
+def connect(server: str, password: str | None, factory_class: type[VNCDoToolFactory], proxy: type[TProxy], timeout: float | None, username: str | None, repeater_id: str | None) -> TProxy: ...
 def connect(
     server: str,
     password: str | None = None,
@@ -141,6 +141,7 @@ def connect(
     proxy: type[ThreadedVNCClientProxy] = ThreadedVNCClientProxy,
     timeout: float | None = None,
     username: str | None = None,
+    repeater_id: str | None = None,
 ) -> ThreadedVNCClientProxy:
     """Connect to a VNCServer and return a Client instance that is usable
     in the main thread of non-Twisted Python Applications,
@@ -191,6 +192,9 @@ def connect(
 
     if password is not None:
         factory.password = password
+
+    if repeater_id is not None:
+        factory.repeater_id = repeater_id
 
     family, host, port = command.parse_server(server)
     client = proxy(factory, timeout)
